@@ -31,7 +31,7 @@ class EloquentTaskRepository implements TaskInterface
     {
         $result = new Result;
 
-        return (new Task)->select(TOTEM_TABLE_PREFIX.'tasks.*')
+        return (new Task)->select(TOTEM_TABLE_PREFIX . 'tasks.*')
             ->selectSub(
                 $result->getLastRun(),
                 'last_ran_at'
@@ -45,7 +45,7 @@ class EloquentTaskRepository implements TaskInterface
     /**
      * Find a task by id.
      *
-     * @param  int|Task  $id
+     * @param int|Task $id
      * @return Task|null
      */
     public function find(Task|int $id)
@@ -54,9 +54,7 @@ class EloquentTaskRepository implements TaskInterface
             return $id;
         }
 
-        return Cache::rememberForever('totem.task.'.$id, function () use ($id) {
-            return Task::query()->with('frequencies')->find($id);
-        });
+        return Task::query()->with('frequencies')->find($id);
     }
 
     /**
@@ -66,9 +64,7 @@ class EloquentTaskRepository implements TaskInterface
      */
     public function findAll(): Collection
     {
-        return Cache::rememberForever('totem.tasks.all', function () {
-            return Task::query()->with('frequencies')->get();
-        });
+        return Task::query()->with('frequencies')->get();
     }
 
     /**
@@ -78,17 +74,15 @@ class EloquentTaskRepository implements TaskInterface
      */
     public function findAllActive(): Collection
     {
-        return Cache::rememberForever('totem.tasks.active', function () {
-            return $this->findAll()->filter(function ($task) {
-                return $task->is_active;
-            });
+        return $this->findAll()->filter(function ($task) {
+            return $task->is_active;
         });
     }
 
     /**
      * Create a new task.
      *
-     * @param  array  $input
+     * @param array $input
      * @return bool|Task
      */
     public function store(array $input): bool|Task
@@ -107,8 +101,8 @@ class EloquentTaskRepository implements TaskInterface
     /**
      * Update the given task.
      *
-     * @param  array  $input
-     * @param  Task  $task
+     * @param array $input
+     * @param Task $task
      * @return Task
      */
     public function update(array $input, $task): Task
@@ -127,7 +121,7 @@ class EloquentTaskRepository implements TaskInterface
     /**
      * Delete the given task.
      *
-     * @param  int|Task  $id
+     * @param int|Task $id
      * @return bool
      */
     public function destroy(Task|int $id): bool
@@ -182,7 +176,7 @@ class EloquentTaskRepository implements TaskInterface
     /**
      * Execute a given task.
      *
-     * @param  int|Task  $id
+     * @param int|Task $id
      * @return Task
      */
     public function execute(Task|int $id): Task
@@ -214,17 +208,17 @@ class EloquentTaskRepository implements TaskInterface
 
         collect(json_decode(Arr::get($input, 'content')))
             ->each(function ($data) {
-                Cache::forget('totem.task.'.$data->id);
+                Cache::forget('totem.task.' . $data->id);
 
                 $task = $this->find($data->id);
 
                 if (is_null($task)) {
-                    $this->store((array) $data);
+                    $this->store((array)$data);
 
                     return;
                 }
 
-                $this->update((array) $data, $task);
+                $this->update((array)$data, $task);
             });
     }
 }
